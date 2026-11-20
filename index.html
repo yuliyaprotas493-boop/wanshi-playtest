@@ -82,6 +82,23 @@ body.w-gridding .w-grid{opacity:1;visibility:visible;pointer-events:auto}
 .w-tile img{width:100%;display:block;border-radius:10px;box-shadow:var(--wshadow);cursor:zoom-in}
 .w-drag{transition:none!important}
 .ver-line{margin:20px 0 0;text-align:center;font:11px ui-sans-serif,system-ui,sans-serif;color:var(--faint);letter-spacing:.08em}
+/* —— v33：多图附图与聊天叠卡堆（组件协调版） —— */
+.img-thumb{position:relative;flex:none}
+.img-thumb img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.img-thumb button{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border:1px solid var(--line);border-radius:50%;background:var(--paper);color:var(--muted);font-size:12px;line-height:1;cursor:pointer;display:grid;place-items:center}
+.u-stack{position:relative;width:186px;height:168px;margin:0 0 6px auto;perspective:900px;user-select:none;-webkit-user-select:none;touch-action:none}
+.u-card{position:absolute;left:50%;top:50%;width:var(--w);height:var(--h);margin:calc(var(--h)/-2) 0 0 calc(var(--w)/-2);transform:translate3d(var(--x),var(--y),0) rotateY(var(--ry)) rotateX(var(--rx)) rotate(var(--r)) scale(var(--s));opacity:var(--o);filter:blur(var(--bl)) brightness(var(--br));touch-action:none;cursor:grab;will-change:transform,opacity;transition:transform .55s var(--wspring),opacity .4s,filter .5s}
+.u-card.enter{filter:blur(14px)}
+.u-card.fly{transition:transform var(--fly) cubic-bezier(.3,.7,.4,1),opacity .1s linear calc(var(--fly) - .1s)}
+.u-card.drag{transition:none;cursor:grabbing}
+.u-frame{position:absolute;inset:0;border-radius:14px;overflow:hidden;background:rgba(235,231,221,.9);box-shadow:var(--wshadow);transition:transform .5s var(--wspring),box-shadow .35s}
+.u-frame img{width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.u-card.press .u-frame{transform:scale(.975)}
+.u-card.hold .u-frame{transform:scale(.94);transition:transform .45s cubic-bezier(.4,0,.6,1)}
+.u-card.drag .u-frame{box-shadow:0 2px 4px rgba(48,47,41,.1),0 26px 44px -12px rgba(48,47,41,.38)}
+.u-cycle{position:absolute;right:-8px;top:50%;margin-top:-21px;width:42px;height:42px;padding:0;border:3px solid transparent;border-radius:50%;background:rgba(244,241,233,.85) padding-box;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:grid;place-items:center;cursor:pointer;z-index:200;box-shadow:0 2px 8px rgba(48,47,41,.12);transition:transform .4s var(--wspring)}
+.u-cycle:active{transform:rotate(-120deg) scale(.9)}
+.u-cycle svg{width:15px;height:15px;fill:none;stroke:#3b3a33;stroke-width:2.2;stroke-linecap:round}
 @media(max-width:340px){.status-strip{padding-left:10px;padding-right:10px}.stat-chip{min-width:60px;padding:5px 7px;gap:4px}.stat-label{font-size:10px}.feed{padding-left:10px;padding-right:10px}.brand-name{font-size:13px}.phase{font-size:9px;padding-left:8px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
@@ -114,8 +131,8 @@ body.w-gridding .w-grid{opacity:1;visibility:visible;pointer-events:auto}
     <div class="feed" id="feed" aria-live="polite"><div class="feed-inner" id="feedInner"></div></div>
     <button class="jump-bottom" id="jumpBottom" type="button">回到底部 ↓</button>
     <div class="composer-wrap">
-      <div class="img-preview" id="imgPreview" hidden><img id="imgPreviewEl" alt="待发送图片"><button type="button" class="img-remove" id="imgRemove" aria-label="移除图片">×</button></div>
-      <form class="composer" id="composerForm"><label class="icon-btn img-btn" id="imgBtn" aria-label="添加图片" title="添加图片"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"></rect><circle cx="9" cy="10.5" r="1.6"></circle><path d="M5.5 17l4.2-4.6a1.2 1.2 0 0 1 1.8 0l2 2.2 1.6-1.7a1.2 1.2 0 0 1 1.8 0l2.6 2.8"></path></svg><input type="file" id="imgInput" accept="image/*" class="file-native"></label><textarea id="playerInput" rows="1" maxlength="2000" placeholder="说说你想做什么……" aria-label="输入行动"></textarea><button class="stop-btn" id="stopButton" type="button" aria-label="停止生成" style="display:none"><svg viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2"></rect></svg></button><button class="send-btn" id="sendButton" type="submit" aria-label="发送"><svg id="sendIcon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></form>
+      <div class="img-preview" id="imgPreview" hidden></div>
+      <form class="composer" id="composerForm"><label class="icon-btn img-btn" id="imgBtn" aria-label="添加图片" title="添加图片"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"></rect><circle cx="9" cy="10.5" r="1.6"></circle><path d="M5.5 17l4.2-4.6a1.2 1.2 0 0 1 1.8 0l2 2.2 1.6-1.7a1.2 1.2 0 0 1 1.8 0l2.6 2.8"></path></svg><input type="file" id="imgInput" accept="image/*" multiple class="file-native"></label><textarea id="playerInput" rows="1" maxlength="2000" placeholder="说说你想做什么……" aria-label="输入行动"></textarea><button class="stop-btn" id="stopButton" type="button" aria-label="停止生成" style="display:none"><svg viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2"></rect></svg></button><button class="send-btn" id="sendButton" type="submit" aria-label="发送"><svg id="sendIcon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></form>
       <div class="composer-caption">回形针可附图 · 空框点箭头＝继续剧情 · 生成中可暂停或停止</div>
     </div>
   </section>
@@ -163,7 +180,7 @@ body.w-gridding .w-grid{opacity:1;visibility:visible;pointer-events:auto}
       <button class="action-btn danger" id="clearSave">清空当前存档</button>
     </div>
     </div>
-    <p class="ver-line">万世修真 · v32</p>
+    <p class="ver-line">万世修真 · v33</p>
   </aside>
 </div>
 <div class="overlay" id="savesOverlay" aria-hidden="true">
@@ -363,7 +380,7 @@ function loadSaves(){const s=safeParse(store.get(KEY.saves),null);if(s&&Array.is
  const legacy=safeParse(store.get(KEY.save),null);const ok=!!(legacy&&legacy.stats&&Array.isArray(legacy.messages));
  const slot={id:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:'存档一',state:ok?legacy:null,savedAt:(legacy&&legacy.updatedAt)||new Date().toISOString()};
  saves={slots:[slot],activeId:slot.id};persistSaves();if(ok)store.del(KEY.save)}
-function saveState(){const slot=activeSlot();if(state&&slot){state.messages.forEach((m,i,arr)=>{if(m.image&&i<arr.length-6){m.content=String(m.content).replace(IMG_NOTE,'原图已随历史清理');delete m.image}});slot.state=state;slot.savedAt=state.updatedAt||new Date().toISOString();persistSaves();$('continueGame').disabled=false}}
+function saveState(){const slot=activeSlot();if(state&&slot){state.messages.forEach((m,i,arr)=>{if((m.image||m.images)&&i<arr.length-6){m.content=String(m.content).replace(IMG_NOTE,'原图已随历史清理');delete m.image;delete m.images}});slot.state=state;slot.savedAt=state.updatedAt||new Date().toISOString();persistSaves();$('continueGame').disabled=false}}
 function loadState(){const slot=activeSlot();const s=slot?.state;if(!s||!s.stats||!Array.isArray(s.messages))return null;return s}
 function phaseText(st){return !st?'空存档':st.ended?'已终了':st.phase==='character'?'创角中':'自由人生'}
 function fmtTime(iso){try{const d=new Date(iso);return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}catch{return ''}}
@@ -443,8 +460,8 @@ $('tmSettings').addEventListener('click',()=>{closeTopMenu();openDrawer()});
 const ctxMenu=document.createElement('div');ctxMenu.className='top-menu ctx-menu';ctxMenu.innerHTML='<button type="button" id="ctxCopy">复制此段</button>';document.body.appendChild(ctxMenu);let ctxTarget=null,pressTimer=null;
 function closeCtxMenu(){ctxMenu.classList.remove('open');ctxTarget=null}
 function showCtx(x,y,target){ctxTarget=target;ctxMenu.style.right='auto';ctxMenu.classList.add('open');const pw=ctxMenu.offsetWidth,ph=ctxMenu.offsetHeight;ctxMenu.style.left=Math.min(Math.max(8,x),innerWidth-pw-8)+'px';ctxMenu.style.top=Math.min(Math.max(8,y),innerHeight-ph-8)+'px'}
-feedInner.addEventListener('contextmenu',e=>{if(e.target.closest('img.user-img'))return;const p=e.target.closest('.prose,.think-content,.user-message');if(!p)return;e.preventDefault();closeStatPop();showCtx(e.clientX,e.clientY,p)});
-feedInner.addEventListener('touchstart',e=>{if(e.target.closest('img.user-img'))return;const p=e.target.closest('.prose,.think-content,.user-message');if(!p)return;const t=e.touches[0];pressTimer=setTimeout(()=>{closeStatPop();showCtx(t.clientX,t.clientY,p)},480)},{passive:true});
+feedInner.addEventListener('contextmenu',e=>{if(e.target.closest('img.user-img,.u-stack'))return;const p=e.target.closest('.prose,.think-content,.user-message');if(!p)return;e.preventDefault();closeStatPop();showCtx(e.clientX,e.clientY,p)});
+feedInner.addEventListener('touchstart',e=>{if(e.target.closest('img.user-img,.u-stack'))return;const p=e.target.closest('.prose,.think-content,.user-message');if(!p)return;const t=e.touches[0];pressTimer=setTimeout(()=>{closeStatPop();showCtx(t.clientX,t.clientY,p)},480)},{passive:true});
 ['touchend','touchmove','touchcancel'].forEach(ev=>feedInner.addEventListener(ev,()=>clearTimeout(pressTimer),{passive:true}));
 ctxMenu.querySelector('#ctxCopy').addEventListener('click',()=>{if(ctxTarget){const txt=ctxTarget.textContent||'';const done=()=>notify('已复制');const fail=()=>notify('复制失败');if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fail)}else{try{const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy')?done():fail();ta.remove()}catch{fail()}}}closeCtxMenu()});
 document.addEventListener('click',e=>{if(ctxMenu.classList.contains('open')&&!e.target.closest('.ctx-menu'))closeCtxMenu()});
@@ -468,7 +485,7 @@ function nearBottom(){return feed.scrollHeight-feed.scrollTop-feed.clientHeight<
 feed.addEventListener('scroll',()=>{if(sticking)return;autoStick=nearBottom();jumpBtn.classList.toggle('show',!autoStick)},{passive:true});
 jumpBtn.addEventListener('click',()=>scrollBottom(true));
 function scrollBottom(force){if(force){autoStick=true;jumpBtn.classList.remove('show')}if(!autoStick)return;sticking=true;clearTimeout(stickT);stickT=setTimeout(()=>{sticking=false;autoStick=nearBottom();jumpBtn.classList.toggle('show',!autoStick)},700);requestAnimationFrame(()=>{feed.scrollTop=feed.scrollHeight})}
-function addUserBubble(text,image){const el=document.createElement('div');el.className='message user-message';if(image){const im=document.createElement('img');im.className='user-img';im.src=image;im.alt='玩家附图';el.appendChild(im)}el.appendChild(document.createTextNode(text));feedInner.appendChild(el);scrollBottom(true)}
+function addUserBubble(text,imgs){const el=document.createElement('div');el.className='message user-message';const list=Array.isArray(imgs)?imgs.filter(x=>typeof x==='string'&&x.startsWith('data:image/')):[];if(list.length===1){const im=document.createElement('img');im.className='user-img';im.src=list[0];im.alt='玩家附图';el.appendChild(im)}else if(list.length>1){el.appendChild(buildStack(list))}el.appendChild(document.createTextNode(text));feedInner.appendChild(el);scrollBottom(true)}
 /* v30：只在「流式框」仍是最后一个元素时才复用，防止历史渲染残留标记导致新回复插到旧位置 */
 function ensureAssistantGroup(){let g=feedInner.querySelector('.assistant-group.streaming-current');if(g&&g!==feedInner.lastElementChild){g.classList.remove('streaming-current');g=null}if(!g){g=document.createElement('div');g.className='assistant-group message streaming-current';feedInner.appendChild(g)}return g}
 function addThinkingStatus(g){if(g._status)return;const el=document.createElement('div');el.className='generation-status block';el.innerHTML='<span class="typing-indicator"><i></i><i></i><i></i></span><span>正在思索</span><span class="status-timer">00:00</span>';g.appendChild(el);const tmEl=el.querySelector('.status-timer');const t0=Date.now();const tm=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);tmEl.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},1000);const sk=document.createElement('div');sk.className='skel-lines block';sk.innerHTML='<span class="skel-line"></span><span class="skel-line"></span><span class="skel-line"></span>';g.appendChild(sk);g._status={el,tm,sk};scrollBottom()}
@@ -538,27 +555,28 @@ function setTransport(mode){streaming=mode!=='idle';paused=mode==='paused';sendI
 function waitIfPaused(){if(!paused)return Promise.resolve();return new Promise(r=>{resumeResolve=r})}
 function updateSendIcon(){if(streaming)return;sendIcon.innerHTML=input.value.trim()?'<path d="M5 12h14M12 5l7 7-7 7"/>':'<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>'}
 let lastComposerAt=0;
-function composerSend(){const now=Date.now();if(now-lastComposerAt<400)return;lastComposerAt=now;if(streaming){if(paused)resumeGen();else pauseGen();return}const v=input.value.trim();const hasImg=!!pendingImage;if(v||hasImg){const img=pendingImage;pendingImage=null;hideImgPreview();sendPlayer(v||'（见图）',{image:img});return}if(!state){notify('先载入存档或点「开始新的人生」');return}if(state.ended){notify('此生已终。点「重新开始」或到存档管理开新人生');return}sendPlayer('继续',{silent:true})}
+function composerSend(){const now=Date.now();if(now-lastComposerAt<400)return;lastComposerAt=now;if(streaming){if(paused)resumeGen();else pauseGen();return}const v=input.value.trim();const hasImg=pendingImages.length>0;if(v||hasImg){const imgs=[...pendingImages];pendingImages=[];hideImgPreview();sendPlayer(v||'（见图）',{images:imgs});return}if(!state){notify('先载入存档或点「开始新的人生」');return}if(state.ended){notify('此生已终。点「重新开始」或到存档管理开新人生');return}sendPlayer('继续',{silent:true})}
 function pauseGen(){if(!streaming||paused)return;setTransport('paused')}
 function resumeGen(){if(!paused)return;setTransport('running');resumeResolve?.()}
 function stopGen(){if(!streaming)return;paused=false;const r=resumeResolve;resumeResolve=null;r?.();controller?.abort()}
 function buildUserContext(text,st=state,img=null){const step=st.phase==='character'?STEPS[st.step]:null;return JSON.stringify({当前阶段:st.phase==='character'?'创角 · '+(step?.title||'完成'):'人生 · 自由修仙',创角进度:st.phase==='character'?{当前项目:step?.title,已确定:st.character,当前项目参考方案:step?.choices?.map(x=>x[0])}:st.character,五维状态:st.stats,最近决定:st.decisions.slice(-12),玩家输入:text,...(img?{玩家附图:'有，请结合本条消息所附图片内容'}:{})})}
 const IMG_NOTE='请结合本条消息所附图片内容';
-function toApiMessages(history){const keep=new Set();let n=0;for(let i=history.length-1;i>=0;i--){if(history[i].image){if(n<2)keep.add(i);n++}}return history.map((m,i)=>{if(m.role!=='user'||!m.image)return m;if(keep.has(i))return{role:'user',content:[{type:'text',text:m.content},{type:'image_url',image_url:{url:m.image}}]};return{role:'user',content:String(m.content).replace(IMG_NOTE,'原图已随对话历史省略')}})}
+function msgImgs(m){return Array.isArray(m.images)?m.images:(m.image?[m.image]:[])}
+function toApiMessages(history){const keep=new Set();let n=0;for(let i=history.length-1;i>=0;i--){if(msgImgs(history[i]).length){if(n<2)keep.add(i);n++}}return history.map((m,i)=>{if(m.role!=='user')return m;const imgs=msgImgs(m);if(!imgs.length)return m;if(keep.has(i))return{role:'user',content:[{type:'text',text:m.content},...imgs.map(u=>({type:'image_url',image_url:{url:u}}))].slice(0,5)};return{role:'user',content:String(m.content).replace(IMG_NOTE,'原图已随对话历史省略')}})}
 function compressImage(file){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{try{const MAX=800;let w=img.width,h=img.height;const sc=Math.min(1,MAX/Math.max(w,h));w=Math.max(1,Math.round(w*sc));h=Math.max(1,Math.round(h*sc));const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(url);res(cv.toDataURL('image/jpeg',0.8))}catch(e){URL.revokeObjectURL(url);rej(e)}};img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('decode failed'))};img.src=url})}
-let pendingImage=null;
-function showImgPreview(src){const p=$('imgPreview');$('imgPreviewEl').src=src;p.hidden=false}
-function hideImgPreview(){const p=$('imgPreview');p.hidden=true;$('imgPreviewEl').removeAttribute('src')}
+let pendingImages=[];
+function showImgPreview(){const p=$('imgPreview');p.innerHTML='';pendingImages.forEach((src,i)=>{const t=document.createElement('div');t.className='img-thumb';const im=document.createElement('img');im.src=src;im.alt='待发送图片';const b=document.createElement('button');b.type='button';b.setAttribute('aria-label','移除图片');b.textContent='×';b.addEventListener('click',()=>{pendingImages.splice(i,1);pendingImages.length?showImgPreview():hideImgPreview()});t.appendChild(im);t.appendChild(b);p.appendChild(t)});p.hidden=pendingImages.length===0}
+function hideImgPreview(){pendingImages=[];const p=$('imgPreview');p.innerHTML='';p.hidden=true}
 function endpoint(url){let u=url.trim().replace(/\/+$/,'');if(!u)return '';if(/\/chat\/completions(?:\?.*)?$/.test(u))return u;return u+'/chat/completions'}
-async function sendPlayer(text,{fromChoice=false,image=null,silent=false}={}){if(streaming){controller?.abort();return}text=(text||'').trim();if(!text)return;if(!state){notify('先载入存档或点「开始新的人生」');return}if(state.ended){notify('此生已终。点「重新开始」或到存档管理开新人生');return}const st=state;const img=(image&&typeof image==='string'&&image.startsWith('data:image/'))?image:null;const cfg=loadSettings();if(!cfg.url||!cfg.key||!cfg.model){if(!silent)addUserBubble(text,img);st.messages.push({role:'user',content:buildUserContext(text,st,img),...(img?{image:img}:{}) ,...(silent?{silent:true}:{})});pendingImage=null;hideImgPreview();const g=ensureAssistantGroup();g._st=st;addBlock('error','尚未配置接口。请打开设置，填写兼容接口地址、API Key 与模型名称后再继续。你的输入已保留在本机存档中。',g);g.classList.remove('streaming-current');st.updatedAt=new Date().toISOString();saveState();input.value='';resizeInput();updateSendIcon();notify('先在设置中完成接口配置');return}
+async function sendPlayer(text,{fromChoice=false,image=null,images=null,silent=false}={}){if(streaming){controller?.abort();return}text=(text||'').trim();if(!text)return;if(!state){notify('先载入存档或点「开始新的人生」');return}if(state.ended){notify('此生已终。点「重新开始」或到存档管理开新人生');return}const st=state;const imgs=[...(Array.isArray(images)?images:[]),...(image?[image]:[])].filter(u=>typeof u==='string'&&u.startsWith('data:image/'));const hasImgs=imgs.length>0;const cfg=loadSettings();if(!cfg.url||!cfg.key||!cfg.model){if(!silent)addUserBubble(text,imgs);st.messages.push({role:'user',content:buildUserContext(text,st,hasImgs),...(hasImgs?{images:imgs}:{}) ,...(silent?{silent:true}:{})});pendingImages=[];hideImgPreview();const g=ensureAssistantGroup();g._st=st;addBlock('error','尚未配置接口。请打开设置，填写兼容接口地址、API Key 与模型名称后再继续。你的输入已保留在本机存档中。',g);g.classList.remove('streaming-current');st.updatedAt=new Date().toISOString();saveState();input.value='';resizeInput();updateSendIcon();notify('先在设置中完成接口配置');return}
  if(!silent&&st.phase==='character'&&st.messages.some(m=>m.role==='assistant')){const step=STEPS[st.step];if(step){st.character[step.key]=text;st.decisions.push({type:'choice',step:step.key,value:text,at:Date.now()});st.step=Math.min(STEPS.length,st.step+1);if(st.step>=STEPS.length){st.phase='life'}}}
- if(!silent)addUserBubble(text,img);lockStaleForms();input.value='';resizeInput();updateSendIcon();updatePhase();pendingImage=null;hideImgPreview();const userContent=buildUserContext(text,st,img);st.messages.push({role:'user',content:userContent,...(img?{image:img}:{}),...(silent?{silent:true}:{})});const g=ensureAssistantGroup();g._st=st;const parser=new BlockParser(g,st);controller=new AbortController();setTransport('running');addThinkingStatus(g);let lastData=Date.now(),timedOut=false;const wd=setInterval(()=>{if(!paused&&streaming&&Date.now()-lastData>45000){timedOut=true;controller?.abort()}},4000);
+ if(!silent)addUserBubble(text,imgs);lockStaleForms();input.value='';resizeInput();updateSendIcon();updatePhase();pendingImages=[];hideImgPreview();const userContent=buildUserContext(text,st,hasImgs);st.messages.push({role:'user',content:userContent,...(hasImgs?{images:imgs}:{}),...(silent?{silent:true}:{})});const g=ensureAssistantGroup();g._st=st;const parser=new BlockParser(g,st);controller=new AbortController();setTransport('running');addThinkingStatus(g);let lastData=Date.now(),timedOut=false;const wd=setInterval(()=>{if(!paused&&streaming&&Date.now()-lastData>45000){timedOut=true;controller?.abort()}},4000);
  try{const history=toApiMessages(st.messages.slice(-24));const response=await fetch(endpoint(cfg.url),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},body:JSON.stringify({model:cfg.model,stream:true,messages:[{role:'system',content:buildSystemPrompt()},...history]}),signal:controller.signal});if(!response.ok){let detail='';try{detail=(await response.text()).slice(0,500)}catch{}throw new Error(`接口返回 ${response.status}${detail?'：'+detail:''}`)}if(!response.body)throw new Error('此浏览器未提供流式响应能力。');const reader=response.body.getReader(),decoder=new TextDecoder();let sseBuffer='',raw='',done=false;while(!done){await waitIfPaused();const r=await reader.read();done=r.done;if(r.value){sseBuffer+=decoder.decode(r.value,{stream:!done});let idx;while((idx=sseBuffer.indexOf('\n'))>=0){const line=sseBuffer.slice(0,idx).replace(/\r$/,'');sseBuffer=sseBuffer.slice(idx+1);if(!line.startsWith('data:'))continue;const payload=line.slice(5).trim();if(payload==='[DONE]'){done=true;break}const packet=safeParse(payload);const delta=packet?.choices?.[0]?.delta||{};const think=delta.reasoning_content;const token=delta.content;if(typeof think==='string'&&think){lastData=Date.now();pushThinkToken(g,think)}else if(typeof token==='string'&&token){clearThinkingStatus(g);const tp=g.querySelector('details.think');if(tp){tp.open=false;tp.querySelector('.think-content').classList.remove('streaming')}raw+=token;lastData=Date.now();parser.push(token);scrollBottom()}}}}parser.push('',true);st.messages.push({role:'assistant',content:raw});if(!raw.trim())addBlock('error','接口已连接，但没有收到可显示的主持内容。请检查模型与接口兼容性。',g);}
  catch(err){clearThinkingStatus(g);if(timedOut){parser.push('',true);addBlock('error','接口超过 45 秒没有任何回应，已自动停止。可重试，或在设置里换一组接口。',g)}else if(err.name==='AbortError'){parser.push('',true);if(g.childElementCount===0)addBlock('state','本次生成已停止。',g)}else{addBlock('error',friendlyError(err),g)}}finally{clearThinkingStatus(g);clearInterval(wd);setTransport('idle');controller=null;resumeResolve=null;st.updatedAt=new Date().toISOString();if(st===state)saveState();updatePhase();scrollBottom()}}
 function friendlyError(err){const msg=String(err?.message||err);if(msg.includes('Failed to fetch')||msg.includes('NetworkError'))return '无法连接接口。请检查地址、网络及服务端 CORS 设置；浏览器直连模式需要接口允许跨域请求。';if(msg.includes('401')||msg.includes('403'))return '接口拒绝了请求，请核对 API Key、模型权限与接口地址。';if(msg.includes('404'))return '找不到接口地址，请确认 API 根地址或 chat/completions 路径。';if(msg.includes('429'))return '接口当前限流或额度不足，请稍后重试并检查服务商用量。';return '连接未能完成：'+msg.slice(0,260)}
 function renderAssistant(raw){const g=ensureAssistantGroup();g._st=state;const parser=new BlockParser(g,state);parser.push(raw,true);g.classList.remove('streaming-current')}
 function renderAll(){feedInner.innerHTML='';renderStats();if(!state)return;if(!state.messages.length){const hint=document.createElement('div');hint.className='empty-hint';hint.innerHTML='<span class="hint-mark">☯</span>山门未启，先说一句你想如何开始。<br>每一步由你自己决定。';feedInner.appendChild(hint);return}
- for(const m of state.messages){if(m.role==='user'){if(m.silent)continue;let text=m.content;const parsed=safeParse(m.content);if(parsed&&typeof parsed==='object'&&parsed.玩家输入)text=parsed.玩家输入;addUserBubble(text,m.image)}else if(m.role==='assistant'){renderAssistant(m.content)}}updatePhase();scrollBottom(true)}
+ for(const m of state.messages){if(m.role==='user'){if(m.silent)continue;let text=m.content;const parsed=safeParse(m.content);if(parsed&&typeof parsed==='object'&&parsed.玩家输入)text=parsed.玩家输入;addUserBubble(text,msgImgs(m))}else if(m.role==='assistant'){renderAssistant(m.content)}}updatePhase();scrollBottom(true)}
 function startNew(){if(streaming){notify('生成中，请等这轮结束或先停止再开新局');return}state=freshState();saveState();setGame();const opening='我想开始一段新的人生。请按创角一幕定案：先用两三行正文介绍世界，然后在同一幕一次性给出全部创角交互块（出身、灵根、天赋、姓名、性别、年龄、容貌特征、属性分配），幕末用 [定] 让我一次填完统一提交。';sendPlayer(opening)}
 function resizeInput(){input.style.height='auto';input.style.height=Math.min(input.scrollHeight,132)+'px'}
 function openDrawer(){renderApis();editingApiId=null;fillApiForm();renderWorlds();$('settingsStatus').textContent='';$('settingsStatus').className='settings-status';overlay.classList.add('open');overlay.setAttribute('aria-hidden','false')}
@@ -580,13 +598,12 @@ $('imgBtn').addEventListener('click',()=>{if(streaming)return;imgPickAway=false;
 document.addEventListener('visibilitychange',()=>{if(document.hidden){imgPickAway=true;clearTimeout(imgPickTimer)}});
 window.addEventListener('blur',()=>{imgPickAway=true;clearTimeout(imgPickTimer)});
 $('imgInput').addEventListener('click',e=>{if(streaming){e.preventDefault();clearTimeout(imgPickTimer);notify('生成中，稍后再附图')}});
-$('imgInput').addEventListener('change',e=>{clearTimeout(imgPickTimer);const f=e.target.files?.[0];e.target.value='';if(!f)return;if(streaming){notify('生成中，稍后再附图');return}if(!f.type||!f.type.startsWith('image/')){notify('请选择图片文件');return}compressImage(f).then(d=>{pendingImage=d;showImgPreview(d)}).catch(()=>notify('图片处理失败'))});
-$('imgRemove').addEventListener('click',()=>{pendingImage=null;hideImgPreview()});
+$('imgInput').addEventListener('change',e=>{clearTimeout(imgPickTimer);const files=[...(e.target.files||[])];e.target.value='';if(!files.length)return;if(streaming){notify('生成中，稍后再附图');return}const bad=files.find(f=>!f.type||!f.type.startsWith('image/'));if(bad){notify('请选择图片文件');return}Promise.all(files.slice(0,9).map(compressImage)).then(ds=>{pendingImages=pendingImages.concat(ds).slice(0,9);showImgPreview()}).catch(()=>notify('图片处理失败'))});
 /* v31：图片全屏查看器 + 两列网格（组件协调版，交互手感照搬雷总优化组件） */
 const wSLOP=10,wDIST=.2,wSPEED=.45,wHOLD=450;
 const wViewer=$('wViewer'),wGrid=$('wGrid'),wBar=$('wBar');
 let wImgs=[],wCur=0,wSlide=null,wOpenState=false;
-function wCollect(){wImgs=[];state.messages.forEach(m=>{if(m.role==='user'&&m.image)wImgs.push(m.image)})}
+function wCollect(){wImgs=[];state.messages.forEach(m=>{msgImgs(m).forEach(u=>wImgs.push(u))})}
 function wRatio(src){return new Promise(res=>{const im=new Image();im.onload=()=>res(im.naturalHeight/im.naturalWidth||.75);im.onerror=()=>res(.75);im.src=src})}
 function wFit(r){const W=Math.min(innerWidth*.92,560),H=innerHeight*.72;let w=W,h=w*r;if(h>H){h=H;w=h/r}return{w,h}}
 function wRect(src){const el=[...document.querySelectorAll('img.user-img')].find(i=>i.src===src);if(el){const r=el.getBoundingClientRect();if(r.width)return r}return null}
@@ -615,7 +632,102 @@ if(mode==='h'){const w=innerWidth;if(Math.abs(dx)>w*wDIST||Math.abs(dx)/dt>wSPEE
 else if(mode==='v'){document.body.classList.remove('w-pulling');document.body.style.removeProperty('--wpull');if(dy>110||dy/dt>.5)wCloseViewer();else{cl.classList.remove('w-drag');wHide(cl)}}
 else{cl.classList.remove('w-drag');wHide(cl)}}
 wViewer.addEventListener('pointerup',wEnd);wViewer.addEventListener('pointercancel',wEnd)})();
-/* v31：长按聊天图片进网格；点图进全屏 */
+/* v33：聊天叠卡堆（照搬组件：八向拖动甩出、cycle 翻看、轻点开全屏、长按进网格） */
+const UPOSE=[[0,0,-4,1,1,0,1],[26,-8,5,.93,1,.5,.97],[-18,-14,-9,.86,.9,1.2,.93],[0,-18,0,.8,0,2,.9]].map(([x,y,r,s,o,bl,br])=>({x,y,r,s,o,bl,br}));
+const USLOP=10,UTAP=280,UHOLD=450,UDIST=70,USPEED=.45;
+const upose=i=>UPOSE[Math.min(i,UPOSE.length-1)];
+function ucss(el,o){for(const k in o)el.style.setProperty('--'+k,o[k])}
+function usize(r){return r>1.08?[172,Math.max(88,172/r)]:r<.92?[Math.max(96,158*r),158]:[136,136]}
+function buildStack(list){
+  const stack=document.createElement('div');stack.className='u-stack';
+  const order=list.map((src,idx)=>{
+    const el=document.createElement('div');el.className='u-card enter';
+    const fr=document.createElement('div');fr.className='u-frame';
+    const im=document.createElement('img');im.src=src;im.alt='玩家附图';im.draggable=false;
+    fr.appendChild(im);el.appendChild(fr);stack.appendChild(el);
+    const r=wRatioCache.get(src)||4/3;const[w,h]=usize(r);ucss(el,{w:w+'px',h:h+'px'});
+    if(!wRatioCache.has(src))wRatio(src).then(rr=>{wRatioCache.set(src,rr);const[w2,h2]=usize(rr);ucss(el,{w:w2+'px',h:h2+'px'})});
+    return{el,idx,src};
+  });
+  const cycle=document.createElement('button');cycle.type='button';cycle.className='u-cycle';cycle.setAttribute('aria-label','下一张');
+  cycle.innerHTML='<svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg>';
+  stack.appendChild(cycle);
+  const layout=()=>order.forEach((c,i)=>{c.el.style.zIndex=100-i;usetVars(c.el,upose(i))});
+  function usetVars(el,p,e={}){ucss(el,{x:p.x+(e.dx||0)+'px',y:p.y+(e.dy||0)+'px',r:p.r+(e.dr||0)+'deg',s:p.s*(e.ds||1),ry:(e.ry||0)+'deg',rx:(e.rx||0)+'deg',o:p.o,bl:(p.bl||0)+'px',br:p.br??1})}
+  function nextCard(ux=-1,uy=0,from=0,speed=0){
+    const c=order[0];if(!c||c.el.classList.contains('fly'))return;
+    const w=c.el.offsetWidth,h=c.el.offsetHeight;
+    const ms=Math.round(Math.max(240,Math.min(340,385-speed*90)));
+    const reach=Math.max(Math.hypot(w*ux,h*uy)*.9,from+w*.5);
+    order.shift();layout();
+    c.el.classList.remove('drag');c.el.classList.add('fly');c.el.style.zIndex=101;
+    ucss(c.el,{fly:ms+'ms'});
+    usetVars(c.el,{x:0,y:0,r:0,s:1,o:0},{dx:ux*reach,dy:uy*reach,ry:-ux*82,rx:uy*70,ds:.9});
+    setTimeout(()=>{
+      order.push(c);const i=order.length-1;
+      c.el.classList.replace('fly','drag');c.el.style.zIndex=100-i;
+      usetVars(c.el,{...upose(i),o:0});c.el.offsetHeight;c.el.classList.remove('drag');
+      usetVars(c.el,upose(i));
+    },ms);
+  }
+  cycle.addEventListener('click',e=>{e.stopPropagation();nextCard()});
+  let drag=null;
+  const endPress=d=>{clearTimeout(d.hold);clearTimeout(d.long);d.c.el.classList.remove('press','hold')};
+  stack.addEventListener('pointerdown',e=>{
+    const c=order[0];if(!c||!c.el.contains(e.target)||c.el.classList.contains('fly'))return;
+    const t=performance.now();
+    drag={c,id:e.pointerId,x0:e.clientX,y0:e.clientY,t,dx:0,dy:0,moving:false,trail:[[e.clientX,e.clientY,t]]};
+    c.el.classList.add('press');
+    drag.hold=setTimeout(()=>c.el.classList.add('hold'),160);
+    drag.long=setTimeout(()=>{endPress(drag);drag=null;layout();wCollect();if(wImgs.length)wToGridView()},UHOLD);
+    try{stack.setPointerCapture(e.pointerId)}catch(_){}
+  });
+  stack.addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==drag.id)return;
+    const t=performance.now(),dx=e.clientX-drag.x0,dy=e.clientY-drag.y0,tr=drag.trail;
+    tr.push([e.clientX,e.clientY,t]);
+    while(tr.length>2&&t-tr[0][2]>100)tr.shift();
+    if(!drag.moving){
+      if(Math.hypot(dx,dy)<USLOP)return;
+      endPress(drag);drag.moving=true;drag.c.el.classList.add('drag');
+      try{drag.c.el.setPointerCapture(e.pointerId)}catch(_){}
+    }
+    drag.dx=dx;drag.dy=dy;
+    if(!drag.raf)drag.raf=requestAnimationFrame(()=>paint());
+  });
+  function paint(){
+    if(!drag)return;drag.raf=0;
+    const{dx,dy}=drag,d=Math.hypot(dx,dy),cl=(v,a)=>Math.max(-a,Math.min(a,v));
+    usetVars(drag.c.el,UPOSE[0],{dx,dy,dr:-UPOSE[0].r*Math.min(d/120,1),ry:cl(-dx*.22,70),rx:cl(dy*.18,55)});
+    const s=order[1],u=Math.min(d/160,1),a=UPOSE[1],b=UPOSE[0],p={};
+    if(!s)return;
+    for(const k in a)p[k]=a[k]+(b[k]-a[k])*u;
+    usetVars(s.el,{...p,o:1});
+  }
+  function release(e){
+    if(!drag||e.pointerId!==drag.id)return;
+    const d=drag;drag=null;
+    cancelAnimationFrame(d.raf||0);
+    if(!d.moving){
+      endPress(d);
+      if(e.type==='pointerup'&&performance.now()-d.t<UTAP){wCollect();let gi=wImgs.lastIndexOf(d.c.src);if(gi<0){wImgs=wImgs.concat([d.c.src]);gi=wImgs.length-1}wOpen(gi,d.c.el)}
+      return;
+    }
+    d.c.el.classList.remove('drag');
+    const a=d.trail[0],b=d.trail[d.trail.length-1],span=Math.max(b[2]-a[2],1);
+    const vx=(b[0]-a[0])/span,vy=(b[1]-a[1])/span,v=Math.hypot(vx,vy),dist=Math.hypot(d.dx,d.dy);
+    const back=v>.2&&vx*d.dx+vy*d.dy<0;
+    if(e.type==='pointerup'&&dist&&!back&&(dist>UDIST||v>USPEED)){
+      const f=v>USPEED;
+      nextCard(f?vx/v:d.dx/dist,f?vy/v:d.dy/dist,dist,v);
+    }else layout();
+  }
+  stack.addEventListener('pointerup',release);
+  stack.addEventListener('pointercancel',release);
+  order.forEach((c,i)=>{const p=upose(i);c.el.style.zIndex=100-i;usetVars(c.el,{...p,y:p.y+60,s:p.s*.85,o:0})});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>order.forEach((c,i)=>setTimeout(()=>{c.el.classList.remove('enter');usetVars(c.el,upose(i))},i*70))));
+  return stack;
+}
 let wPressT=null;
 feedInner.addEventListener('touchstart',e=>{const im=e.target.closest('img.user-img');if(!im)return;wPressT=setTimeout(()=>{wPressT=null;wCollect();if(wImgs.length)wToGridView()},wHOLD)},{passive:true});
 feedInner.addEventListener('touchend',()=>{clearTimeout(wPressT);wPressT=null},{passive:true});
