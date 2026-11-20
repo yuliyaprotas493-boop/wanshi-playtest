@@ -182,7 +182,7 @@ body.w-gridding .w-grid{opacity:1;visibility:visible;pointer-events:auto}
       <button class="action-btn danger" id="clearSave">清空当前存档</button>
     </div>
     </div>
-    <p class="ver-line">万世修真 · v34</p>
+    <p class="ver-line">万世修真 · v35</p>
   </aside>
 </div>
 <div class="overlay" id="savesOverlay" aria-hidden="true">
@@ -487,7 +487,7 @@ function nearBottom(){return feed.scrollHeight-feed.scrollTop-feed.clientHeight<
 feed.addEventListener('scroll',()=>{if(sticking)return;autoStick=nearBottom();jumpBtn.classList.toggle('show',!autoStick)},{passive:true});
 jumpBtn.addEventListener('click',()=>scrollBottom(true));
 function scrollBottom(force){if(force){autoStick=true;jumpBtn.classList.remove('show')}if(!autoStick)return;sticking=true;clearTimeout(stickT);stickT=setTimeout(()=>{sticking=false;autoStick=nearBottom();jumpBtn.classList.toggle('show',!autoStick)},700);requestAnimationFrame(()=>{feed.scrollTop=feed.scrollHeight})}
-function addUserBubble(text,imgs){const el=document.createElement('div');el.className='message user-message';const list=Array.isArray(imgs)?imgs.filter(x=>typeof x==='string'&&x.startsWith('data:image/')):[];if(list.length===1){const im=document.createElement('img');im.className='user-img';im.src=list[0];im.alt='玩家附图';el.appendChild(im)}else if(list.length>1){el.classList.add('has-stack');el.appendChild(buildStack(list))}el.appendChild(document.createTextNode(text));feedInner.appendChild(el);scrollBottom(true)}
+function addUserBubble(text,imgs){const el=document.createElement('div');el.className='message user-message';const list=Array.isArray(imgs)?imgs.filter(x=>typeof x==='string'&&x.startsWith('data:image/')):[];if(list.length){el.classList.add('has-stack');el.appendChild(buildStack(list))}el.appendChild(document.createTextNode(text));feedInner.appendChild(el);scrollBottom(true)}
 /* v30：只在「流式框」仍是最后一个元素时才复用，防止历史渲染残留标记导致新回复插到旧位置 */
 function ensureAssistantGroup(){let g=feedInner.querySelector('.assistant-group.streaming-current');if(g&&g!==feedInner.lastElementChild){g.classList.remove('streaming-current');g=null}if(!g){g=document.createElement('div');g.className='assistant-group message streaming-current';feedInner.appendChild(g)}return g}
 function addThinkingStatus(g){if(g._status)return;const el=document.createElement('div');el.className='generation-status block';el.innerHTML='<span class="typing-indicator"><i></i><i></i><i></i></span><span>正在思索</span><span class="status-timer">00:00</span>';g.appendChild(el);const tmEl=el.querySelector('.status-timer');const t0=Date.now();const tm=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);tmEl.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},1000);const sk=document.createElement('div');sk.className='skel-lines block';sk.innerHTML='<span class="skel-line"></span><span class="skel-line"></span><span class="skel-line"></span>';g.appendChild(sk);g._status={el,tm,sk};scrollBottom()}
@@ -570,7 +570,8 @@ let pendingImages=[];
 function showImgPreview(){const p=$('imgPreview');p.innerHTML='';pendingImages.forEach((src,i)=>{const t=document.createElement('div');t.className='img-thumb';const im=document.createElement('img');im.src=src;im.alt='待发送图片';const b=document.createElement('button');b.type='button';b.setAttribute('aria-label','移除图片');b.textContent='×';b.addEventListener('click',()=>{pendingImages.splice(i,1);pendingImages.length?showImgPreview():hideImgPreview()});t.appendChild(im);t.appendChild(b);p.appendChild(t)});p.hidden=pendingImages.length===0}
 function hideImgPreview(){pendingImages=[];const p=$('imgPreview');p.innerHTML='';p.hidden=true}
 function endpoint(url){let u=url.trim().replace(/\/+$/,'');if(!u)return '';if(/\/chat\/completions(?:\?.*)?$/.test(u))return u;return u+'/chat/completions'}
-async function sendPlayer(text,{fromChoice=false,image=null,images=null,silent=false}={}){if(streaming){controller?.abort();return}text=(text||'').trim();if(!text)return;if(!state){notify('先载入存档或点「开始新的人生」');return}if(state.ended){notify('此生已终。点「重新开始」或到存档管理开新人生');return}const st=state;const imgs=[...(Array.isArray(images)?images:[]),...(image?[image]:[])].filter(u=>typeof u==='string'&&u.startsWith('data:image/'));const hasImgs=imgs.length>0;const cfg=loadSettings();if(!cfg.url||!cfg.key||!cfg.model){if(!silent)addUserBubble(text,imgs);st.messages.push({role:'user',content:buildUserContext(text,st,hasImgs),...(hasImgs?{images:imgs}:{}) ,...(silent?{silent:true}:{})});pendingImages=[];hideImgPreview();const g=ensureAssistantGroup();g._st=st;addBlock('error','尚未配置接口。请打开设置，填写兼容接口地址、API Key 与模型名称后再继续。你的输入已保留在本机存档中。',g);g.classList.remove('streaming-current');st.updatedAt=new Date().toISOString();saveState();input.value='';resizeInput();updateSendIcon();notify('先在设置中完成接口配置');return}
+async function sendPlayer(text,{fromChoice=false,image=null,images=null,silent=false}={}){if(streaming){controller?.abort();return}text=(text||'').trim();if(!text)return;if(!state){notify('先载入存档或点「开始新的人生」');return}if(state.ended){notify('此生已终。点「重新开始」或到存档管理开新人生');return}const st=state;const imgs=[...(Array.isArray(images)?images:[]),...(image?[image]:[])].filter(u=>typeof u==='string'&&u.startsWith('data:image/'));const hasImgs=imgs.length>0;
+ if(!silent&&hasImgs&&text==='（见图）'){const lastUser=[...st.messages].reverse().find(m=>m.role==='user'&&!m.silent);if(lastUser&&msgImgs(lastUser).length){lastUser.images=[...imgs,...msgImgs(lastUser)];st.updatedAt=new Date().toISOString();saveState();renderAll();notify('已并入上一条消息的图片');return}}const cfg=loadSettings();if(!cfg.url||!cfg.key||!cfg.model){if(!silent)addUserBubble(text,imgs);st.messages.push({role:'user',content:buildUserContext(text,st,hasImgs),...(hasImgs?{images:imgs}:{}) ,...(silent?{silent:true}:{})});pendingImages=[];hideImgPreview();const g=ensureAssistantGroup();g._st=st;addBlock('error','尚未配置接口。请打开设置，填写兼容接口地址、API Key 与模型名称后再继续。你的输入已保留在本机存档中。',g);g.classList.remove('streaming-current');st.updatedAt=new Date().toISOString();saveState();input.value='';resizeInput();updateSendIcon();notify('先在设置中完成接口配置');return}
  if(!silent&&st.phase==='character'&&st.messages.some(m=>m.role==='assistant')){const step=STEPS[st.step];if(step){st.character[step.key]=text;st.decisions.push({type:'choice',step:step.key,value:text,at:Date.now()});st.step=Math.min(STEPS.length,st.step+1);if(st.step>=STEPS.length){st.phase='life'}}}
  if(!silent)addUserBubble(text,imgs);lockStaleForms();input.value='';resizeInput();updateSendIcon();updatePhase();pendingImages=[];hideImgPreview();const userContent=buildUserContext(text,st,hasImgs);st.messages.push({role:'user',content:userContent,...(hasImgs?{images:imgs}:{}),...(silent?{silent:true}:{})});const g=ensureAssistantGroup();g._st=st;const parser=new BlockParser(g,st);controller=new AbortController();setTransport('running');addThinkingStatus(g);let lastData=Date.now(),timedOut=false;const wd=setInterval(()=>{if(!paused&&streaming&&Date.now()-lastData>45000){timedOut=true;controller?.abort()}},4000);
  try{const history=toApiMessages(st.messages.slice(-24));const response=await fetch(endpoint(cfg.url),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},body:JSON.stringify({model:cfg.model,stream:true,messages:[{role:'system',content:buildSystemPrompt()},...history]}),signal:controller.signal});if(!response.ok){let detail='';try{detail=(await response.text()).slice(0,500)}catch{}throw new Error(`接口返回 ${response.status}${detail?'：'+detail:''}`)}if(!response.body)throw new Error('此浏览器未提供流式响应能力。');const reader=response.body.getReader(),decoder=new TextDecoder();let sseBuffer='',raw='',done=false;while(!done){await waitIfPaused();const r=await reader.read();done=r.done;if(r.value){sseBuffer+=decoder.decode(r.value,{stream:!done});let idx;while((idx=sseBuffer.indexOf('\n'))>=0){const line=sseBuffer.slice(0,idx).replace(/\r$/,'');sseBuffer=sseBuffer.slice(idx+1);if(!line.startsWith('data:'))continue;const payload=line.slice(5).trim();if(payload==='[DONE]'){done=true;break}const packet=safeParse(payload);const delta=packet?.choices?.[0]?.delta||{};const think=delta.reasoning_content;const token=delta.content;if(typeof think==='string'&&think){lastData=Date.now();pushThinkToken(g,think)}else if(typeof token==='string'&&token){clearThinkingStatus(g);const tp=g.querySelector('details.think');if(tp){tp.open=false;tp.querySelector('.think-content').classList.remove('streaming')}raw+=token;lastData=Date.now();parser.push(token);scrollBottom()}}}}parser.push('',true);st.messages.push({role:'assistant',content:raw});if(!raw.trim())addBlock('error','接口已连接，但没有收到可显示的主持内容。请检查模型与接口兼容性。',g);}
@@ -651,9 +652,12 @@ function buildStack(list){
     if(!wRatioCache.has(src))wRatio(src).then(rr=>{wRatioCache.set(src,rr);const[w2,h2]=usize(rr);ucss(el,{w:w2+'px',h:h2+'px'})});
     return{el,idx,src};
   });
-  const cycle=document.createElement('button');cycle.type='button';cycle.className='u-cycle';cycle.setAttribute('aria-label','下一张');
-  cycle.innerHTML='<svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg>';
-  stack.appendChild(cycle);
+  if(list.length>1){
+    const cycle=document.createElement('button');cycle.type='button';cycle.className='u-cycle';cycle.setAttribute('aria-label','下一张');
+    cycle.innerHTML='<svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg>';
+    cycle.addEventListener('click',e=>{e.stopPropagation();nextCard()});
+    stack.appendChild(cycle);
+  }
   const layout=()=>order.forEach((c,i)=>{c.el.style.zIndex=100-i;usetVars(c.el,upose(i))});
   function usetVars(el,p,e={}){ucss(el,{x:p.x+(e.dx||0)+'px',y:p.y+(e.dy||0)+'px',r:p.r+(e.dr||0)+'deg',s:p.s*(e.ds||1),ry:(e.ry||0)+'deg',rx:(e.rx||0)+'deg',o:p.o,bl:(p.bl||0)+'px',br:p.br??1})}
   function nextCard(ux=-1,uy=0,from=0,speed=0){
@@ -672,9 +676,7 @@ function buildStack(list){
       usetVars(c.el,upose(i));
     },ms);
   }
-  cycle.addEventListener('click',e=>{e.stopPropagation();nextCard()});
-  let drag=null;
-  const endPress=d=>{clearTimeout(d.hold);clearTimeout(d.long);d.c.el.classList.remove('press','hold')};
+  let drag=null;  const endPress=d=>{clearTimeout(d.hold);clearTimeout(d.long);d.c.el.classList.remove('press','hold')};
   stack.addEventListener('pointerdown',e=>{
     const c=order[0];if(!c||!c.el.contains(e.target)||c.el.classList.contains('fly'))return;
     const t=performance.now();
