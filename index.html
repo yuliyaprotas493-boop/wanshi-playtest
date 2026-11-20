@@ -32,7 +32,7 @@
 .img-preview[hidden]{display:none}
 .img-preview img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
 .img-remove{width:22px;height:22px;border:1px solid var(--line);border-radius:50%;background:var(--paper);color:var(--muted);font-size:13px;line-height:1;cursor:pointer}
-.user-img{display:block;max-width:180px;max-height:180px;border-radius:9px;margin:0 0 6px auto;border:1px solid var(--line)}
+.user-img{display:block;max-width:180px;max-height:180px;border-radius:14px;margin:0 0 6px auto;box-shadow:0 1px 2px rgba(48,47,41,.1),0 14px 30px -8px rgba(48,47,41,.32);cursor:zoom-in}
 .top-menu{position:absolute;right:0;top:calc(100% + 6px);min-width:152px;border:1px solid var(--line);border-radius:10px;background:var(--paper);box-shadow:0 10px 28px rgba(48,47,41,.2);padding:5px;z-index:30;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .18s,transform .18s,visibility .18s}
 .top-menu.open{opacity:1;visibility:visible;transform:translateY(0)}
 .top-menu button{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:8px 11px;border:0;border-radius:7px;background:transparent;color:var(--ink);font:13.5px ui-sans-serif,system-ui,sans-serif;cursor:pointer;text-align:left}
@@ -60,6 +60,27 @@
 .chip-opts{display:flex;flex-wrap:wrap;gap:9px}
 .chip-opt{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.3);color:var(--ink);font:14px ui-sans-serif,system-ui,sans-serif;padding:9px 16px;min-height:40px;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
 .chip-opt.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+/* —— v31：图片全屏查看与网格（组件协调版） —— */
+:root{--wspring:cubic-bezier(.22,1.18,.36,1);--wease:cubic-bezier(.16,1,.3,1);--wshadow:0 1px 2px rgba(48,47,41,.1),0 14px 30px -8px rgba(48,47,41,.32)}
+.app{transition:opacity .35s,filter .45s,transform .45s var(--wease)}
+body.w-viewing .app,body.w-gridding .app{opacity:0;filter:blur(16px);transform:scale(.96);pointer-events:none}
+body.w-pulling .app{transition:none;opacity:calc(var(--wpull)*.9);filter:blur(calc((1 - var(--wpull))*16px));transform:scale(calc(.96 + var(--wpull)*.04))}
+.w-viewer{position:fixed;inset:0;z-index:500;background:rgba(48,47,41,.9);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .3s,visibility .3s;touch-action:none}
+body.w-viewing .w-viewer{opacity:1;visibility:visible;pointer-events:auto}
+.w-bar{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;z-index:502;opacity:0;transition:opacity .25s}
+body.w-viewing .w-bar{opacity:1}
+.w-bar button{width:44px;height:44px;border:0;border-radius:50%;background:rgba(235,231,221,.92);color:#3b3a33;display:grid;place-items:center;cursor:pointer;box-shadow:var(--wshadow)}
+.w-bar button:active{transform:scale(.92)}
+.w-slide{position:fixed;inset:0;display:grid;place-items:center;z-index:501;touch-action:none}
+.w-slide img{max-width:92vw;max-height:72vh;border-radius:10px;box-shadow:0 24px 60px rgba(0,0,0,.5);will-change:transform,opacity}
+.w-ghost{position:fixed;z-index:503;pointer-events:none;border-radius:14px;overflow:hidden;box-shadow:var(--wshadow)}
+.w-ghost img{width:100%;height:100%;object-fit:cover;display:block}
+.w-grid{position:fixed;inset:0;z-index:500;background:rgba(48,47,41,.9);overflow-y:auto;overscroll-behavior:contain;padding:64px 14px 30px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .3s,visibility .3s;-webkit-column-count:2;column-count:2;column-gap:10px}
+body.w-gridding .w-grid{opacity:1;visibility:visible;pointer-events:auto}
+.w-tile{break-inside:avoid;margin-bottom:10px;opacity:0;transform:translateY(18px) scale(.96);animation:wTileIn .5s var(--wease) forwards;animation-delay:calc(var(--wi)*55ms)}
+@keyframes wTileIn{to{opacity:1;transform:none}}
+.w-tile img{width:100%;display:block;border-radius:10px;box-shadow:var(--wshadow);cursor:zoom-in}
+.w-drag{transition:none!important}
 @media(max-width:340px){.status-strip{padding-left:10px;padding-right:10px}.stat-chip{min-width:60px;padding:5px 7px;gap:4px}.stat-label{font-size:10px}.feed{padding-left:10px;padding-right:10px}.brand-name{font-size:13px}.phase{font-size:9px;padding-left:8px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
@@ -154,6 +175,8 @@
   </aside>
 </div>
 <div class="confirm-modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"><div class="confirm-box"><h3 id="confirmTitle">确认操作</h3><p id="confirmText"></p><div class="confirm-actions"><button class="action-btn subtle" id="confirmCancel">再想一想</button><button class="action-btn danger" id="confirmOkay">确认</button></div></div></div>
+<div class="w-grid" id="wGrid" hidden></div>
+<div class="w-viewer" id="wViewer" hidden><div class="w-bar" id="wBar"><button id="wClose" aria-label="关闭"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button id="wToGrid" aria-label="全部图片"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></button></div></div>
 <div class="toast" id="toast" role="status"></div>
 <script>
 'use strict';
@@ -418,8 +441,8 @@ $('tmSettings').addEventListener('click',()=>{closeTopMenu();openDrawer()});
 const ctxMenu=document.createElement('div');ctxMenu.className='top-menu ctx-menu';ctxMenu.innerHTML='<button type="button" id="ctxCopy">复制此段</button>';document.body.appendChild(ctxMenu);let ctxTarget=null,pressTimer=null;
 function closeCtxMenu(){ctxMenu.classList.remove('open');ctxTarget=null}
 function showCtx(x,y,target){ctxTarget=target;ctxMenu.style.right='auto';ctxMenu.classList.add('open');const pw=ctxMenu.offsetWidth,ph=ctxMenu.offsetHeight;ctxMenu.style.left=Math.min(Math.max(8,x),innerWidth-pw-8)+'px';ctxMenu.style.top=Math.min(Math.max(8,y),innerHeight-ph-8)+'px'}
-feedInner.addEventListener('contextmenu',e=>{const p=e.target.closest('.prose,.think-content,.user-message');if(!p)return;e.preventDefault();closeStatPop();showCtx(e.clientX,e.clientY,p)});
-feedInner.addEventListener('touchstart',e=>{const p=e.target.closest('.prose,.think-content,.user-message');if(!p)return;const t=e.touches[0];pressTimer=setTimeout(()=>{closeStatPop();showCtx(t.clientX,t.clientY,p)},480)},{passive:true});
+feedInner.addEventListener('contextmenu',e=>{if(e.target.closest('img.user-img'))return;const p=e.target.closest('.prose,.think-content,.user-message');if(!p)return;e.preventDefault();closeStatPop();showCtx(e.clientX,e.clientY,p)});
+feedInner.addEventListener('touchstart',e=>{if(e.target.closest('img.user-img'))return;const p=e.target.closest('.prose,.think-content,.user-message');if(!p)return;const t=e.touches[0];pressTimer=setTimeout(()=>{closeStatPop();showCtx(t.clientX,t.clientY,p)},480)},{passive:true});
 ['touchend','touchmove','touchcancel'].forEach(ev=>feedInner.addEventListener(ev,()=>clearTimeout(pressTimer),{passive:true}));
 ctxMenu.querySelector('#ctxCopy').addEventListener('click',()=>{if(ctxTarget){const txt=ctxTarget.textContent||'';const done=()=>notify('已复制');const fail=()=>notify('复制失败');if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fail)}else{try{const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy')?done():fail();ta.remove()}catch{fail()}}}closeCtxMenu()});
 document.addEventListener('click',e=>{if(ctxMenu.classList.contains('open')&&!e.target.closest('.ctx-menu'))closeCtxMenu()});
@@ -557,6 +580,47 @@ window.addEventListener('blur',()=>{imgPickAway=true;clearTimeout(imgPickTimer)}
 $('imgInput').addEventListener('click',e=>{if(streaming){e.preventDefault();clearTimeout(imgPickTimer);notify('生成中，稍后再附图')}});
 $('imgInput').addEventListener('change',e=>{clearTimeout(imgPickTimer);const f=e.target.files?.[0];e.target.value='';if(!f)return;if(streaming){notify('生成中，稍后再附图');return}if(!f.type||!f.type.startsWith('image/')){notify('请选择图片文件');return}compressImage(f).then(d=>{pendingImage=d;showImgPreview(d)}).catch(()=>notify('图片处理失败'))});
 $('imgRemove').addEventListener('click',()=>{pendingImage=null;hideImgPreview()});
+/* v31：图片全屏查看器 + 两列网格（组件协调版，交互手感照搬雷总优化组件） */
+const wSLOP=10,wDIST=.2,wSPEED=.45,wHOLD=450;
+const wViewer=$('wViewer'),wGrid=$('wGrid'),wBar=$('wBar');
+let wImgs=[],wCur=0,wSlide=null,wOpenState=false;
+function wCollect(){wImgs=[];state.messages.forEach(m=>{if(m.role==='user'&&m.image)wImgs.push(m.image)})}
+function wRatio(src){return new Promise(res=>{const im=new Image();im.onload=()=>res(im.naturalHeight/im.naturalWidth||.75);im.onerror=()=>res(.75);im.src=src})}
+function wFit(r){const W=Math.min(innerWidth*.92,560),H=innerHeight*.72;let w=W,h=w*r;if(h>H){h=H;w=h/r}return{w,h}}
+function wRect(src){const el=[...document.querySelectorAll('img.user-img')].find(i=>i.src===src);if(el){const r=el.getBoundingClientRect();if(r.width)return r}return null}
+function wEnsure(){if(wSlide)return;wSlide=document.createElement('div');wSlide.className='w-slide';wViewer.appendChild(wSlide)}
+function wPlace(img,dx,sc,op){img.style.cssText=`transform:translateX(${dx}px) scale(${sc});opacity:${op}`}
+function wHide(img){img.style.cssText='transform:none;opacity:1'}
+/* v31：FLIP ghost 放大 */
+function wGhost(src,from,rect){const g=document.createElement('div');g.className='w-ghost';const im=new Image();im.src=src;g.appendChild(im);const fit=wFit(wRatioCache.get(src)||.75);g.style.cssText=`left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;transition:none`;document.body.appendChild(g);g.offsetHeight;g.style.transition='left .5s var(--wease),top .5s var(--wease),width .5s var(--wease),height .5s var(--wease),border-radius .5s';g.style.left=(innerWidth-fit.w)/2+'px';g.style.top=(innerHeight-fit.h)/2+'px';g.style.width=fit.w+'px';g.style.height=fit.h+'px';g.style.borderRadius='10px';setTimeout(()=>g.remove(),520)}
+const wRatioCache=new Map();
+async function wOpen(i,fromEl){wCollect();if(!wImgs.length)return;wCur=Math.max(0,Math.min(i,wImgs.length-1));const src=wImgs[wCur];wRatioCache.set(src,await wRatio(src));wEnsure();const rect=fromEl?fromEl.getBoundingClientRect():wRect(src);if(rect)wGhost(src,fromEl,rect);wOpenState=true;wViewer.hidden=false;document.body.classList.add('w-viewing');wRender()}
+function wRender(){if(!wSlide)return;wSlide.innerHTML='';const src=wImgs[wCur];if(!src){wCloseViewer(true);return}const im=document.createElement('img');im.src=src;im.draggable=false;wSlide.appendChild(im);wHide(im)}
+function wCloseViewer(skipBody){wOpenState=false;document.body.classList.remove('w-viewing','w-pulling');wViewer.hidden=true;wGrid.hidden=true;document.body.classList.remove('w-gridding');if(wSlide)wSlide.innerHTML=''}
+function wToGridView(){if(!wImgs.length)return;wGrid.innerHTML='';wImgs.forEach((src,i)=>{const t=document.createElement('div');t.className='w-tile';t.style.setProperty('--wi',i);const im=document.createElement('img');im.src=src;im.draggable=false;im.addEventListener('click',()=>{wCur=i;wOpenState=true;wGrid.hidden=true;document.body.classList.remove('w-gridding');wViewer.hidden=false;document.body.classList.add('w-viewing');wRender()});t.appendChild(im);wGrid.appendChild(t)});wViewer.hidden=true;document.body.classList.remove('w-viewing');wGrid.hidden=false;document.body.classList.add('w-gridding')}
+$('wToGrid').addEventListener('click',wToGridView);
+$('wClose').addEventListener('click',()=>wCloseViewer());
+wViewer.addEventListener('click',e=>{if(e.target===wViewer||e.target===wSlide)wCloseViewer()});
+wGrid.addEventListener('click',e=>{if(e.target===wGrid)wCloseViewer()});
+/* v31：查看器手势——左右翻页、下拉关闭 */
+(function(){let pid=null,sx=0,sy=0,st=0,mode=null,cur=null;
+wViewer.addEventListener('pointerdown',e=>{if(!wOpenState||e.target.closest('.w-bar'))return;pid=e.pointerId;sx=e.clientX;sy=e.clientY;st=performance.now();mode=null;cur=wSlide?.firstElementChild;try{wViewer.setPointerCapture(pid)}catch(_){}});
+wViewer.addEventListener('pointermove',e=>{if(pid===null||e.pointerId!==pid||!cur)return;const dx=e.clientX-sx,dy=e.clientY-sy;if(!mode){if(Math.abs(dx)>wSLOP||Math.abs(dy)>wSLOP)mode=Math.abs(dy)>Math.abs(dx)*1.2?'v':'h';else return}
+if(mode==='h'){const w=innerWidth;const lim=dx<0&&wCur>=wImgs.length-1||dx>0&&wCur<=0?.35:1;cur.classList.add('w-drag');cur.style.transform=`translateX(${dx*lim}px)`;cur.style.opacity=String(1-Math.min(Math.abs(dx)/w,1)*.5)}
+else{const p=Math.min(dy/(innerHeight*.5),1);document.body.classList.add('w-pulling');document.body.style.setProperty('--wpull',Math.max(p,0));cur.classList.add('w-drag');const sc=1-p*.35;cur.style.transform=`translateY(${Math.max(dy,0)}px) scale(${sc})`;cur.style.opacity=String(1-p*.7)}});
+function wEnd(e){if(pid===null||e.pointerId!==pid)return;const dx=e.clientX-sx,dy=e.clientY-sy,dt=performance.now()-st;pid=null;if(!cur)return;const cl=cur;cur=null;
+if(mode==='h'){const w=innerWidth;if(Math.abs(dx)>w*wDIST||Math.abs(dx)/dt>wSPEED){const dir=dx<0?1:-1;if(!(dx<0&&wCur>=wImgs.length-1)&&!(dx>0&&wCur<=0)){wCur+=dir;wRender();return}}cl.classList.remove('w-drag');wHide(cl)}
+else if(mode==='v'){document.body.classList.remove('w-pulling');document.body.style.removeProperty('--wpull');if(dy>110||dy/dt>.5)wCloseViewer();else{cl.classList.remove('w-drag');wHide(cl)}}
+else{cl.classList.remove('w-drag');wHide(cl)}}
+wViewer.addEventListener('pointerup',wEnd);wViewer.addEventListener('pointercancel',wEnd)})();
+/* v31：长按聊天图片进网格；点图进全屏 */
+let wPressT=null;
+feedInner.addEventListener('touchstart',e=>{const im=e.target.closest('img.user-img');if(!im)return;wPressT=setTimeout(()=>{wPressT=null;wCollect();if(wImgs.length)wToGridView()},wHOLD)},{passive:true});
+feedInner.addEventListener('touchend',()=>{clearTimeout(wPressT);wPressT=null},{passive:true});
+feedInner.addEventListener('touchmove',()=>{clearTimeout(wPressT);wPressT=null},{passive:true});
+feedInner.addEventListener('click',e=>{const im=e.target.closest('img.user-img');if(!im)return;const src=im.src;wCollect();let idx=wImgs.lastIndexOf(src);if(idx<0){wImgs=[src];idx=0}wOpen(idx,im)});
+/* v31：键盘支持 */
+document.addEventListener('keydown',e=>{if(!wOpenState)return;if(e.key==='Escape')wCloseViewer();else if(e.key==='ArrowRight'&&wCur<wImgs.length-1){wCur++;wRender()}else if(e.key==='ArrowLeft'&&wCur>0){wCur--;wRender()}});
 /* 手机端：键盘弹出或收起时，对话保持贴底 */
 if(window.visualViewport){visualViewport.addEventListener('resize',()=>{if(game.classList.contains('active'))scrollBottom()})}
 document.addEventListener('focusin',e=>{if(e.target===input)setTimeout(scrollBottom,300)});
