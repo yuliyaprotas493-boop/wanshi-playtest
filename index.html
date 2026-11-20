@@ -99,6 +99,8 @@ body.w-gridding .w-grid{opacity:1;visibility:visible;pointer-events:auto}
 .u-cycle{position:absolute;right:-8px;top:50%;margin-top:-21px;width:42px;height:42px;padding:0;border:3px solid transparent;border-radius:50%;background:rgba(244,241,233,.85) padding-box;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:grid;place-items:center;cursor:pointer;z-index:200;box-shadow:0 2px 8px rgba(48,47,41,.12);transition:transform .4s var(--wspring)}
 .u-cycle:active{transform:rotate(-120deg) scale(.9)}
 .u-cycle svg{width:15px;height:15px;fill:none;stroke:#3b3a33;stroke-width:2.2;stroke-linecap:round}
+/* v34：多图叠卡消息去掉气泡底色，直接浮在聊天背景上 */
+.user-message.has-stack{background:transparent;border-color:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
 @media(max-width:340px){.status-strip{padding-left:10px;padding-right:10px}.stat-chip{min-width:60px;padding:5px 7px;gap:4px}.stat-label{font-size:10px}.feed{padding-left:10px;padding-right:10px}.brand-name{font-size:13px}.phase{font-size:9px;padding-left:8px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
@@ -180,7 +182,7 @@ body.w-gridding .w-grid{opacity:1;visibility:visible;pointer-events:auto}
       <button class="action-btn danger" id="clearSave">清空当前存档</button>
     </div>
     </div>
-    <p class="ver-line">万世修真 · v33</p>
+    <p class="ver-line">万世修真 · v34</p>
   </aside>
 </div>
 <div class="overlay" id="savesOverlay" aria-hidden="true">
@@ -485,7 +487,7 @@ function nearBottom(){return feed.scrollHeight-feed.scrollTop-feed.clientHeight<
 feed.addEventListener('scroll',()=>{if(sticking)return;autoStick=nearBottom();jumpBtn.classList.toggle('show',!autoStick)},{passive:true});
 jumpBtn.addEventListener('click',()=>scrollBottom(true));
 function scrollBottom(force){if(force){autoStick=true;jumpBtn.classList.remove('show')}if(!autoStick)return;sticking=true;clearTimeout(stickT);stickT=setTimeout(()=>{sticking=false;autoStick=nearBottom();jumpBtn.classList.toggle('show',!autoStick)},700);requestAnimationFrame(()=>{feed.scrollTop=feed.scrollHeight})}
-function addUserBubble(text,imgs){const el=document.createElement('div');el.className='message user-message';const list=Array.isArray(imgs)?imgs.filter(x=>typeof x==='string'&&x.startsWith('data:image/')):[];if(list.length===1){const im=document.createElement('img');im.className='user-img';im.src=list[0];im.alt='玩家附图';el.appendChild(im)}else if(list.length>1){el.appendChild(buildStack(list))}el.appendChild(document.createTextNode(text));feedInner.appendChild(el);scrollBottom(true)}
+function addUserBubble(text,imgs){const el=document.createElement('div');el.className='message user-message';const list=Array.isArray(imgs)?imgs.filter(x=>typeof x==='string'&&x.startsWith('data:image/')):[];if(list.length===1){const im=document.createElement('img');im.className='user-img';im.src=list[0];im.alt='玩家附图';el.appendChild(im)}else if(list.length>1){el.classList.add('has-stack');el.appendChild(buildStack(list))}el.appendChild(document.createTextNode(text));feedInner.appendChild(el);scrollBottom(true)}
 /* v30：只在「流式框」仍是最后一个元素时才复用，防止历史渲染残留标记导致新回复插到旧位置 */
 function ensureAssistantGroup(){let g=feedInner.querySelector('.assistant-group.streaming-current');if(g&&g!==feedInner.lastElementChild){g.classList.remove('streaming-current');g=null}if(!g){g=document.createElement('div');g.className='assistant-group message streaming-current';feedInner.appendChild(g)}return g}
 function addThinkingStatus(g){if(g._status)return;const el=document.createElement('div');el.className='generation-status block';el.innerHTML='<span class="typing-indicator"><i></i><i></i><i></i></span><span>正在思索</span><span class="status-timer">00:00</span>';g.appendChild(el);const tmEl=el.querySelector('.status-timer');const t0=Date.now();const tm=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);tmEl.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},1000);const sk=document.createElement('div');sk.className='skel-lines block';sk.innerHTML='<span class="skel-line"></span><span class="skel-line"></span><span class="skel-line"></span>';g.appendChild(sk);g._status={el,tm,sk};scrollBottom()}
